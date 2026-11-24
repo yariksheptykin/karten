@@ -24,15 +24,27 @@ Google Sheet: Kürkarten · Übersicht · Zugänge
 | Persönlicher Code, z. B. `KMR472` | Tab „Zugänge“, von Admins erstellt | nur die Karten dieses Namens | nein |
 | Admin-Passwort (`WRITE_SECRET`) | Script Property | alles, inkl. Zugänge | ja, mit Admin-Sperre |
 
-### Lese-Code in der App
+### Lese-Code in der App (Token-Stack)
 
-Die App sucht den Code in dieser Reihenfolge:
+Die App merkt sich Codes als Stapel im localStorage, Schlüssel `kk_token`:
 
-1. `?token=…` in der URL. Die App speichert ihn und entfernt ihn sofort aus der Adresszeile.
-2. localStorage (vom letzten Besuch)
-3. Eingabe-Bildschirm „Zugangscode“. Der eingegebene Code wird ebenfalls gespeichert.
+```
+token+stack://<voll-lesecode>,KMR472,admin
+```
 
-Ein ungültiger Code wird aus dem Speicher gelöscht und der Eingabe-Bildschirm erscheint wieder. Über „Code wechseln“ unten auf der Seite kann man den Code tauschen.
+Der letzte Eintrag ist der aktive. Woher die Codes kommen:
+
+1. `?token=…` in der URL. Ein einzelner Code wird oben auf den Stapel gelegt. Steht er schon weiter unten, wird er nach oben verschoben. Danach entfernt die App den Parameter aus der Adresszeile.
+2. Sonst gilt der Stapel aus dem localStorage. Ein einzelner Code ohne `token+stack://` (aus älteren Versionen) wird ebenfalls gelesen.
+3. Ist der Stapel leer, erscheint der Eingabe-Bildschirm „Zugangscode“. Ein dort eingegebener Code wird oben auf den Stapel gelegt.
+
+Wie der Stapel sich verhält:
+
+- **Admin-Modus:** Beim Anmelden kommt der Platzhalter `admin` oben auf den Stapel, beim Abmelden wird er wieder entfernt. Danach ist automatisch der Lese-Code darunter aktiv, man muss ihn nicht neu eingeben. Das Admin-Passwort steht nie im Stapel. Es liegt nur in der Browser-Sitzung oder, mit „Passwort merken“, separat im localStorage. Gibt es keine Admin-Sitzung mehr (neuer Tab, Browser neu gestartet), entfernt die App `admin` beim Start.
+- **Ungültiger Code:** Die App nimmt ihn vom Stapel und macht mit dem Code darunter weiter. Nur wenn keiner übrig ist, erscheint der Eingabe-Bildschirm.
+- **„Code wechseln“** (unten auf der Seite) öffnet den Eingabe-Bildschirm, ohne den aktuellen Code zu löschen. Mit „Zurück zum bisherigen Code“ kommt man wieder zurück.
+- **Ganzer Stapel per URL:** `?token=token%2Bstack://CODE1,CODE2` ersetzt den Stapel. In der URL muss `+` als `%2B` geschrieben werden; ein unkodiertes `+` kommt als Leerzeichen an und wird trotzdem erkannt.
+- Der Stapel hält höchstens 8 Einträge, ältere fallen unten heraus.
 
 ### Persönliche Codes
 

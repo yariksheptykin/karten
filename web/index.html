@@ -268,19 +268,58 @@ const state = {
   clockOffset: 0,
   admin: null,        // { secret, lockId, label, expires }
   tokens: null,       // Zugänge (nur Admin)
+  showGate: false,    // Eingabe-Bildschirm trotz vorhandenem Code ("Code wechseln")
 };
 
-// Reihenfolge: ?token=… in der URL, dann localStorage, sonst Eingabe-Bildschirm
+/* ------------------------------------------------------------------ */
+/* Token-Stack                                                          */
+/* localStorage "kk_token" = "token+stack://code1,code2,admin"           */
+/* Der letzte Eintrag ist der aktive. "admin" markiert eine              */
+/* Admin-Sitzung; das Passwort selbst steht nie im Stack.                */
+/* Ein einzelner Code ohne Präfix (alte Version) wird weiter gelesen.    */
+/* ------------------------------------------------------------------ */
+const STACK_PREFIX = 'token+stack://';
+const STACK_RE = /^token[+ ]stack:\/\//i;   // "+" kommt aus einer URL oft als Leerzeichen an
+const ADMIN_ENTRY = 'admin';
+const STACK_MAX = 8;
+
+const tokenStack = {
+  parse(v) {
+    v = String(v || '').trim();
+    if (!v) return [];
+    if (!STACK_RE.test(v)) return [v];
+    return v.replace(STACK_RE, '').split(',')
+      .map(x => { x = x.trim(); try { return decodeURIComponent(x); } catch (_) { return x; } })
+      .filter(Boolean);
+  },
+  format(list) { return STACK_PREFIX + list.map(encodeURIComponent).join(','); },
+  list() { return this.parse(ls.get('kk_token')); },
+  save(list) {
+    list = list.slice(-STACK_MAX);
+    if (list.length) ls.set('kk_token', this.format(list)); else ls.del('kk_token');
+  },
+  // Eintrag oben ablegen; steht er schon weiter unten, wird er nach oben verschoben
+  push(t) { this.save(this.list().filter(x => x !== t).concat(t)); },
+  remove(t) { this.save(this.list().filter(x => x !== t)); },
+  // Aktiver Lese-Code: oberster Eintrag, der kein Admin-Platzhalter ist
+  readToken() { return this.list().filter(x => x !== ADMIN_ENTRY).pop() || null; },
+  has(t) { return this.list().includes(t); },
+};
+
+// Reihenfolge: ?token=… in der URL, dann Stack im localStorage, sonst Eingabe-Bildschirm.
+// ?token= darf ein einzelner Code sein oder ein ganzer Stack (token+stack://a,b).
 function initToken() {
   const url = new URL(location.href);
   const q = (url.searchParams.get('token') || '').trim();
   if (q) {
-    ls.set('kk_token', q);
+    if (STACK_RE.test(q)) tokenStack.save(tokenStack.parse(q).filter(x => x !== ADMIN_ENTRY).concat(tokenStack.has(ADMIN_ENTRY) ? [ADMIN_ENTRY] : []));
+    else tokenStack.push(q);
+    // Bei laufender Admin-Sitzung bleibt "admin" oben
+    if (tokenStack.has(ADMIN_ENTRY) && !STACK_RE.test(q)) tokenStack.push(ADMIN_ENTRY);
     url.searchParams.delete('token');
     history.replaceState(null, '', url.pathname + url.search + url.hash);
-    return q;
   }
-  return ls.get('kk_token');
+  return tokenStack.readToken();
 }
 
 function restoreAdmin() {
@@ -393,8 +432,13 @@ async function load() {
       applyData(await apiGet(state.token));
     }
   } catch (e) {
-    if (!state.admin && (e.code === 'unauthorized' || e.code === 'rate_limited')) {
-      forgetToken(e.code === 'unauthorized' ? 'Dieser Code ist ungültig.' : e.message);
+    if (!state.admin && e.code === 'unauthorized') {
+      // Ungültigen Code aus dem Stack nehmen und mit dem vorherigen weitermachen
+      const bad = state.token;
+      forgetToken('Dieser Code ist ungültig.');
+      if (state.token) { toast(`Code ${bad.length > 8 ? bad.slice(0, 4) + '…' : bad} ist ungültig, vorheriger Code wird verwendet.`, true); state.loading = false; return load(); }
+    } else if (!state.admin && e.code === 'rate_limited') {
+      state.error = e;
     } else {
       state.error = e;
       if (state.cards) toast(e.message, true);
@@ -404,10 +448,19 @@ async function load() {
   render();
 }
 
+// Aktuellen Lese-Code aus dem Stack entfernen; der darunterliegende wird aktiv
 function forgetToken(msg) {
-  state.token = null; state.cards = null; state.scope = null; state.user = null;
+  if (state.token) tokenStack.remove(state.token);
+  state.token = tokenStack.readToken();
+  state.cards = null; state.scope = null; state.user = null;
   state.gateError = msg || '';
-  ls.del('kk_token'); ls.del('kk_cache');
+  ls.del('kk_cache');
+}
+
+// Admin-Platzhalter vom Stack nehmen und zum Lese-Code darunter zurückkehren
+function popAdmin() {
+  tokenStack.remove(ADMIN_ENTRY);
+  state.token = tokenStack.readToken();
 }
 
 async function write(cmd, okMsg) {
@@ -427,6 +480,7 @@ function endAdmin(msg) {
   if (!state.admin) return;
   state.admin = null; state.tokens = null;
   saveAdmin();
+  popAdmin();
   if (msg) toast(msg, true);
   // Daten wieder mit dem eigenen Lese-Code laden (persönlich oder voll)
   state.cards = null;
@@ -438,6 +492,7 @@ async function leaveAdmin() {
   if (!state.admin) return;
   try { await apiPost({ action: 'releaseLock', lockId: state.admin.lockId }, state.admin.secret); } catch (_) {}
   state.admin = null; state.tokens = null; saveAdmin();
+  popAdmin();
   toast('Schreibmodus beendet, Sperre freigegeben');
   state.cards = null;
   if (location.hash.startsWith('#/admin')) location.hash = '#/';
@@ -557,7 +612,7 @@ function renderTop(title, kicker, backHref) {
 function render() {
   const app = document.getElementById('app');
   document.getElementById('bar').innerHTML = '';
-  if (!state.admin && !state.token) return renderGate(app);
+  if (!state.admin && (!state.token || state.showGate)) return renderGate(app);
 
   const r = route();
   app.innerHTML = '<header class="top"></header><main id="main"></main>';
@@ -604,6 +659,7 @@ function renderGate(app) {
         <button class="btn primary block" type="submit">Öffnen</button>
       </form>
       <button class="linkbtn" data-action="lock">Als Admin anmelden</button>
+      ${state.token ? '<button class="linkbtn" data-action="gate-back">Zurück zum bisherigen Code</button>' : ''}
     </div>`;
   const f = document.getElementById('gateform');
   f.onsubmit = async ev => {
@@ -613,7 +669,8 @@ function renderGate(app) {
     const btn = f.querySelector('button'); btn.disabled = true; btn.classList.add('busy');
     try {
       const d = await apiGet(code);
-      state.token = code; ls.set('kk_token', code); state.gateError = '';
+      tokenStack.push(code);
+      state.token = code; state.gateError = ''; state.showGate = false;
       applyData(d); location.hash = '#/'; render();
     } catch (e) {
       f.querySelector('.formerr').textContent = e.code === 'unauthorized' ? 'Dieser Code ist ungültig.' : e.message;
@@ -837,6 +894,8 @@ function unlockSheet() {
       }
       state.admin = { secret, lockId, label, expires: d.lock.expires };
       saveAdmin();
+      tokenStack.push(ADMIN_ENTRY);
+      state.showGate = false;
       ls.set('kk_label', label);
       if (fd.get('remember')) ls.set('kk_pw', secret); else ls.del('kk_pw');
       applyData(d);
@@ -1064,7 +1123,8 @@ document.addEventListener('click', e => {
   if (a === 'refresh') { state.tokens = isAdmin() && route().view === 'admin' ? null : state.tokens; load(); }
   else if (a === 'lock') isAdmin() ? leaveAdmin() : unlockSheet();
   else if (a === 'renew') adminPost({ action: 'acquireLock', label: state.admin.label }).then(d => { applyData(d); toast('Sperre verlängert bis ' + lockTime(state.admin.expires)); render(); }).catch(err => toast(err.message, true));
-  else if (a === 'switch-code') { forgetToken(''); location.hash = '#/'; render(); }
+  else if (a === 'switch-code') { state.showGate = true; state.gateError = ''; render(); }
+  else if (a === 'gate-back') { state.showGate = false; render(); }
   else if (a === 'stamp' && card()) stampSheet(card());
   else if (a === 'stamp-detail' && card()) stampDetailSheet(card(), Number(el.dataset.field));
   else if (a === 'pay' && card()) paySheet(card());
@@ -1098,6 +1158,9 @@ function stampFx() {
 /* =================================================================== */
 state.token = initToken();
 state.admin = restoreAdmin();
+// Stack und Admin-Sitzung abgleichen: "admin" ohne Sitzung (neuer Tab, Browser neu gestartet) fällt weg
+if (state.admin && !tokenStack.has(ADMIN_ENTRY)) tokenStack.push(ADMIN_ENTRY);
+if (!state.admin && tokenStack.has(ADMIN_ENTRY)) popAdmin();
 if (!state.admin && state.token) {
   // Zuletzt geladenen Stand sofort zeigen, dann frisch laden
   try {
