@@ -10,7 +10,10 @@ if (!url) {
   console.error('API_URL ist nicht gesetzt (Settings → Secrets and variables → Actions → Variables).');
   process.exit(1);
 }
-if (!/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(url)) {
+const PROD = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/;
+// Nur für Tests: ALLOW_LOCAL_API=1 erlaubt die lokale Mock-API (http://localhost:PORT/exec)
+const LOCAL = /^http:\/\/(localhost|127\.0\.0\.1):\d+\/exec$/;
+if (!PROD.test(url) && !(process.env.ALLOW_LOCAL_API === '1' && LOCAL.test(url))) {
   console.error('API_URL hat nicht die Form https://script.google.com/macros/s/…/exec');
   process.exit(1);
 }

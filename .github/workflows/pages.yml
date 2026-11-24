@@ -1,6 +1,6 @@
 name: GitHub Pages
 
-# Veröffentlicht web/index.html bei jedem Tag v* (z. B. v1.0.0).
+# Veröffentlicht web/index.html bei jedem Tag v* (z. B. v1.0.0), nachdem alle Tests grün sind.
 # Die API-URL kommt aus der Repository-Variable API_URL und wird in den Logs maskiert.
 on:
   push:
@@ -16,7 +16,12 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Erst die komplette Testsuite (Backend + E2E), nur dann wird veröffentlicht
+  test:
+    uses: ./.github/workflows/ci.yml
+
   build:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -24,9 +29,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-
-      - name: Backend-Tests
-        run: node tests/backend.test.js
 
       - name: API-URL einsetzen
         env:

@@ -1,0 +1,64 @@
+name: CI
+
+# Läuft bei jedem Push auf einen Branch und bei jedem Pull Request.
+# Die Pages-Pipeline ruft denselben Workflow vor dem Veröffentlichen auf.
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+env:
+  TZ: Europe/Berlin
+
+jobs:
+  unit:
+    name: Backend-Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run test:unit
+
+  e2e:
+    name: Seite bauen + E2E-Tests (Mock-API mit CSV)
+    needs: unit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Playwright-Browser installieren
+        run: npx playwright install --with-deps chromium
+
+      # Gleicher Build wie für Pages, nur mit der lokalen Mock-API
+      - name: Seite mit Testdaten bauen
+        run: npm run build:test
+
+      - name: E2E-Tests
+        run: npm run test:e2e
+        env:
+          CI: 'true'
+
+      - name: Bericht und Testdaten hochladen
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-report
+          path: |
+            playwright-report/
+            test-results/
+            .mock-data/
+          include-hidden-files: true
+          retention-days: 14

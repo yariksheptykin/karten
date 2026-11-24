@@ -1,0 +1,15 @@
+{
+  "name": "kuerkarten",
+  "private": true,
+  "description": "Kürkarten-App: Google Sheet als Datenbank, Apps-Script-API, mobile Web-App",
+  "scripts": {
+    "test": "npm run test:unit && npm run test:e2e",
+    "test:unit": "node --test tests/unit/*.test.js",
+    "build:test": "node scripts/build-test.mjs",
+    "mock-api": "node tests/support/mock-api.js",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.1"
+  }
+}

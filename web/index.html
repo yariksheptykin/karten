@@ -862,7 +862,8 @@ function openSheet(inner, okLabel, onSubmit, opts = {}) {
   if (opts.wire) opts.wire(f);
   d.showModal();
   const first = f.querySelector('input:not([type=hidden]):not([readonly]):not([type=radio]):not([type=checkbox])');
-  if (first && opts.focus !== false) setTimeout(() => first.focus(), 60);
+  // Sofort fokussieren: ein verzögerter Fokus würde schnelles Tippen ins falsche Feld umleiten
+  if (first && opts.focus !== false) first.focus();
 }
 document.getElementById('sheet').addEventListener('click', e => { if (e.target.id === 'sheet') e.target.close(); });
 
