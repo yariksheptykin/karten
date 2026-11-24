@@ -1,0 +1,52 @@
+name: GitHub Pages
+
+# Veröffentlicht web/index.html bei jedem Tag v* (z. B. v1.0.0).
+# Die API-URL kommt aus der Repository-Variable API_URL und wird in den Logs maskiert.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Backend-Tests
+        run: node tests/backend.test.js
+
+      - name: API-URL einsetzen
+        env:
+          API_URL: ${{ vars.API_URL }}
+        run: |
+          if [ -n "$API_URL" ]; then echo "::add-mask::$API_URL"; fi
+          node scripts/inject-api-url.mjs web/index.html _site/index.html
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

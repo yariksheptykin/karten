@@ -1,0 +1,1112 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f4f6fb" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1420" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Kürkarten</title>
+<style>
+:root{
+  --bg:#f4f6fb; --surface:#ffffff; --surface-2:#eef1f8; --text:#141a2a; --muted:#667085; --line:#e3e7f0;
+  --accent:#3b5bdb; --accent-2:#15aabf; --accent-soft:#e8edff;
+  --pos:#0c8a4e; --pos-bg:#e3f6ec; --neg:#c92a5c; --neg-bg:#fdebf1; --warn:#a35200; --warn-bg:#fff1dc;
+  --radius:18px; --shadow:0 1px 2px rgba(16,24,40,.04),0 6px 20px rgba(16,24,40,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0f1420; --surface:#171d2b; --surface-2:#1f2637; --text:#e9edf5; --muted:#98a2b3; --line:#262e40;
+    --accent:#6582ff; --accent-soft:rgba(101,130,255,.16);
+    --pos:#3ddc97; --pos-bg:rgba(61,220,151,.12); --neg:#ff6b9a; --neg-bg:rgba(255,107,154,.12);
+    --warn:#ffb54d; --warn-bg:rgba(255,170,60,.14); --shadow:none;
+  }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;-webkit-font-smoothing:antialiased}
+body{min-height:100dvh}
+a{color:inherit;text-decoration:none}
+button,input,select{font:inherit;color:inherit}
+.app{max-width:640px;margin:0 auto;padding:0 16px calc(110px + env(safe-area-inset-bottom))}
+
+/* Header */
+.top{position:sticky;top:0;z-index:5;margin:0 -16px;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;display:flex;align-items:center;gap:10px;
+  background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px)}
+.top .titles{flex:1;min-width:0}
+.top h1{font-size:20px;line-height:1.2;margin:0;font-weight:750;letter-spacing:-.015em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top .kicker{font-size:12.5px;color:var(--muted)}
+.iconbtn{width:42px;height:42px;border-radius:13px;border:0;background:var(--surface);display:grid;place-items:center;box-shadow:var(--shadow);cursor:pointer;flex:none;transition:transform .12s}
+.iconbtn:active{transform:scale(.94)}
+.iconbtn svg{width:20px;height:20px}
+.iconbtn.on{background:var(--accent);color:#fff}
+.spin svg{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Search */
+.search{display:block;position:relative;margin:6px 0 14px}
+.search input{width:100%;height:46px;border-radius:14px;border:1px solid var(--line);background:var(--surface);padding:0 14px 0 42px;outline:none;appearance:none;-webkit-appearance:none}
+.search input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.search svg{position:absolute;left:14px;top:13px;width:20px;height:20px;color:var(--muted)}
+
+/* Lists */
+.list{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.row:active{background:var(--surface-2)}
+.avatar{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:15px;color:#fff;flex:none}
+.row .main{flex:1;min-width:0}
+.row .name{font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sub{font-size:13px;color:var(--muted)}
+.chev{color:var(--muted);width:18px;height:18px;flex:none}
+.section-title{font-size:13px;font-weight:650;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:22px 4px 8px}
+
+/* Pills & chips */
+.pill{min-width:44px;text-align:center;padding:4px 10px;border-radius:999px;font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
+.pill.pos{background:var(--pos-bg);color:var(--pos)}
+.pill.neg{background:var(--neg-bg);color:var(--neg)}
+.pill.zero{background:var(--surface-2);color:var(--muted)}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:650;white-space:nowrap}
+.chip.aktiv{background:var(--pos-bg);color:var(--pos)}
+.chip.neu{background:var(--accent-soft);color:var(--accent)}
+.chip.voll{background:var(--surface-2);color:var(--muted)}
+.chip.kredit{background:var(--warn-bg);color:var(--warn)}
+
+/* Owner hero */
+.hero{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+.hero .label{font-size:13px;color:var(--muted);font-weight:600}
+.hero .big{font-size:44px;font-weight:800;letter-spacing:-.03em;line-height:1.05;margin:2px 0 14px;font-variant-numeric:tabular-nums}
+.hero .big small{font-size:15px;font-weight:600;color:var(--muted);letter-spacing:0}
+.hero .big.pos{color:var(--pos)} .hero .big.neg{color:var(--neg)}
+.split{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.split div{background:var(--surface-2);border-radius:12px;padding:10px}
+.split b{display:block;font-size:20px;font-variant-numeric:tabular-nums}
+.split span{font-size:12px;color:var(--muted)}
+
+/* Card tiles */
+.tiles{display:grid;gap:10px}
+.tile{display:block;background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px;transition:transform .12s}
+.tile:active{transform:scale(.985)}
+.tile.full{opacity:.62}
+.tile-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.tile-title{font-weight:700}
+.dots{display:grid;grid-template-columns:repeat(10,1fr);gap:5px;margin:12px 0 8px}
+.dots i{height:8px;border-radius:4px;background:var(--surface-2)}
+.dots i.on{background:linear-gradient(90deg,var(--accent),var(--accent-2))}
+.tile.credit .dots i.on{background:var(--warn)}
+.meta{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
+details.more summary{list-style:none;cursor:pointer;color:var(--muted);font-size:14px;font-weight:600;padding:10px 4px}
+details.more summary::-webkit-details-marker{display:none}
+details.more[open] summary{margin-bottom:6px}
+
+/* Punch card */
+.punch{position:relative;overflow:hidden;border-radius:22px;padding:18px;color:#fff;
+  background:radial-gradient(120% 140% at 100% 0%,#22b8cf 0%,transparent 55%),linear-gradient(135deg,#3b5bdb,#5f3dc4);
+  box-shadow:0 12px 30px rgba(59,91,219,.28)}
+.punch.credit{background:radial-gradient(120% 140% at 100% 0%,#ffa94d 0%,transparent 55%),linear-gradient(135deg,#e8590c,#c2255c);box-shadow:0 12px 30px rgba(232,89,12,.25)}
+.punch::after{content:"";position:absolute;right:-40px;bottom:-60px;width:180px;height:180px;border-radius:50%;border:28px solid rgba(255,255,255,.08)}
+.punch-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;position:relative;z-index:1}
+.punch-kicker{font-size:12.5px;opacity:.85;font-weight:650}
+.punch-name{font-size:24px;font-weight:800;letter-spacing:-.02em;line-height:1.15;margin-top:2px}
+.punch-nr{font-weight:750;font-size:15px;background:rgba(255,255,255,.18);padding:5px 10px;border-radius:10px;white-space:nowrap}
+.grid10{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:18px 0 14px;position:relative;z-index:1}
+.slot{aspect-ratio:1;border-radius:50%;border:2px dashed rgba(255,255,255,.45);display:grid;place-items:center;font-size:13px;font-weight:700;color:rgba(255,255,255,.7)}
+.slot.on{border:0;background:#fff;color:#3b5bdb;transform:rotate(-8deg);box-shadow:0 3px 10px rgba(0,0,0,.18)}
+.punch.credit .slot.on{color:#d9480f}
+.slot.on:nth-child(2n){transform:rotate(6deg)}
+.slot.next{border-style:solid;border-color:#fff;color:#fff}
+.slot span{font-size:12px;letter-spacing:-.02em}
+.punch-foot{display:flex;justify-content:space-between;font-size:13.5px;opacity:.92;position:relative;z-index:1}
+
+.facts{margin-top:14px}
+.facts .row{padding:13px 16px}
+.facts .k{color:var(--muted);flex:1}
+.facts .v{font-weight:600;text-align:right}
+
+/* Bottom action bar */
+.actionbar{position:fixed;left:0;right:0;bottom:0;z-index:6;padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+  background:color-mix(in srgb,var(--bg) 85%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.actionbar .inner{max-width:608px;margin:0 auto;display:flex;gap:10px}
+.btn{height:52px;border-radius:15px;border:0;padding:0 18px;font-weight:700;font-size:16px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:transform .12s,opacity .12s}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.55}
+.btn svg{width:20px;height:20px}
+.btn.primary{background:linear-gradient(135deg,var(--accent),#5f3dc4);color:#fff;flex:1;box-shadow:0 8px 20px rgba(59,91,219,.3)}
+.btn.ghost{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
+.btn.danger{background:var(--neg);color:#fff;flex:1}
+.btn.block{width:100%}
+.btn.busy{position:relative;color:transparent}
+.btn.busy::after{content:"";position:absolute;width:20px;height:20px;border:2.5px solid rgba(255,255,255,.5);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}
+
+/* Bottom sheet */
+dialog.sheet{border:0;padding:0;margin:auto auto 0;width:100%;max-width:640px;background:transparent;color:var(--text)}
+dialog.sheet::backdrop{background:rgba(10,14,25,.45);backdrop-filter:blur(2px)}
+dialog.sheet[open] .panel{animation:up .22s cubic-bezier(.2,.8,.2,1)}
+@keyframes up{from{transform:translateY(40px);opacity:0}}
+.panel{background:var(--surface);border-radius:24px 24px 0 0;padding:10px 18px calc(18px + env(safe-area-inset-bottom))}
+.grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 12px}
+.panel h2{margin:0 0 4px;font-size:20px;letter-spacing:-.01em}
+.panel p.hint{margin:0 0 14px;color:var(--muted);font-size:14px}
+.field{display:block;margin:12px 0}
+.field > span{display:block;font-size:13px;font-weight:650;color:var(--muted);margin-bottom:6px}
+.field input[type=text],.field input[type=password],.field input[type=date]{width:100%;height:50px;border-radius:14px;border:1px solid var(--line);background:var(--surface-2);padding:0 14px;outline:none;appearance:none}
+.field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips label{position:relative}
+.chips input{position:absolute;opacity:0;pointer-events:none}
+.chips span{display:inline-block;padding:10px 14px;border-radius:12px;background:var(--surface-2);font-weight:600;font-size:15px;cursor:pointer;border:1px solid transparent}
+.chips input:checked + span{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+.check{display:flex;align-items:center;gap:10px;font-size:15px;margin:10px 0 4px}
+.check input{width:20px;height:20px;accent-color:var(--accent)}
+.sheet-actions{display:flex;gap:10px;margin-top:18px}
+.formerr{color:var(--neg);background:var(--neg-bg);border-radius:12px;padding:10px 12px;font-size:14px;margin-top:12px}
+.formerr:empty{display:none}
+
+/* Misc */
+.empty{text-align:center;color:var(--muted);padding:40px 16px}
+.skel{height:66px;border-radius:14px;background:linear-gradient(90deg,var(--surface) 0%,var(--surface-2) 50%,var(--surface) 100%);background-size:200% 100%;animation:sh 1.2s infinite;margin-bottom:10px}
+@keyframes sh{to{background-position:-200% 0}}
+.banner{display:flex;gap:10px;align-items:center;background:var(--warn-bg);color:var(--warn);border-radius:14px;padding:10px 14px;font-size:14px;margin:4px 0 12px}
+.toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);opacity:0;z-index:50;
+  background:#141a2a;color:#fff;padding:11px 16px;border-radius:14px;font-size:14.5px;font-weight:600;transition:.25s;max-width:calc(100% - 32px);box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.err{background:var(--neg)}
+.stamp-fx{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;z-index:40}
+.stamp-fx div{width:120px;height:120px;border-radius:50%;background:#fff;color:var(--accent);display:grid;place-items:center;font-size:56px;box-shadow:0 20px 50px rgba(59,91,219,.35);animation:pop .7s cubic-bezier(.2,1.4,.4,1) forwards}
+@keyframes pop{0%{transform:scale(2.2) rotate(-20deg);opacity:0}35%{transform:scale(1) rotate(-8deg);opacity:1}80%{opacity:1}100%{transform:scale(.9) rotate(-8deg);opacity:0}}
+.foot{text-align:center;color:var(--muted);font-size:12.5px;margin-top:22px}
+
+
+
+/* Zugangscode */
+.gate{min-height:100dvh;display:flex;flex-direction:column;justify-content:center;padding:24px 4px 60px;max-width:420px;margin:0 auto}
+.gate .logo{width:72px;height:72px;border-radius:22px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,#3b5bdb,#5f3dc4);box-shadow:0 12px 30px rgba(59,91,219,.3);margin-bottom:22px}
+.gate .logo svg{width:36px;height:36px}
+.gate h1{font-size:30px;letter-spacing:-.025em;margin:0 0 6px}
+.gate p{color:var(--muted);margin:0 0 22px}
+.codeinput{width:100%;height:62px;border-radius:16px;border:1px solid var(--line);background:var(--surface);text-align:center;font-size:26px;font-weight:750;letter-spacing:.18em;text-transform:uppercase;outline:none;margin-bottom:12px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.codeinput::placeholder{letter-spacing:.08em;font-weight:500;color:var(--muted);opacity:.6}
+.codeinput:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.linkbtn{background:none;border:0;color:var(--accent);font-weight:650;padding:14px 0;cursor:pointer}
+.gate .formerr{margin:0 0 12px}
+
+/* Admin */
+.adminbar{display:flex;align-items:center;gap:10px;background:var(--accent-soft);color:var(--accent);border-radius:14px;padding:9px 10px 9px 14px;font-size:14px;margin:4px 0 12px}
+.adminbar span{flex:1}
+.adminbar button{border:0;background:var(--surface);color:var(--accent);font-weight:700;font-size:13px;padding:7px 11px;border-radius:10px;cursor:pointer}
+.card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:12px}
+.card h3{margin:0 0 4px;font-size:17px;letter-spacing:-.01em}
+.card .sub{margin-bottom:12px}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap}
+.btnrow .btn{flex:1;min-width:130px;height:46px;font-size:15px;white-space:nowrap;padding:0 12px}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em;font-weight:700}
+.tokens .row{padding:10px 8px 10px 0}
+.tokens .iconbtn{box-shadow:none;background:var(--surface-2);width:38px;height:38px}
+.tokens .iconbtn svg{width:18px;height:18px}
+.result{margin-top:12px;font-size:14px;background:var(--pos-bg);color:var(--pos);border-radius:12px;padding:10px 12px}
+.result a{text-decoration:underline;font-weight:650}
+.result:empty{display:none}
+.bigcode{font-size:38px;text-align:center;padding:18px 0 8px;letter-spacing:.2em}
+.linkbox{font-size:13px;color:var(--muted);text-align:center;word-break:break-all;margin-bottom:6px}
+.field select{width:100%;height:50px;border-radius:14px;border:1px solid var(--line);background:var(--surface-2);padding:0 14px;outline:none;appearance:none;-webkit-appearance:none}
+
+/* Stempel-Details */
+button.slot{background:none;padding:0;font:inherit;cursor:pointer;appearance:none;-webkit-appearance:none}
+button.slot.on{background:#fff}
+.stamps .row{width:100%;border:0;border-top:1px solid var(--line);background:none;text-align:left;cursor:pointer;color:inherit;font:inherit}
+.stamps .row:first-child{border-top:0}
+.fieldno{width:30px;height:30px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:750;font-size:13px;flex:none}
+.chips.quick{margin:-4px 0 12px}
+.chipbtn{border:1px solid transparent;background:var(--surface-2);border-radius:10px;padding:7px 11px;font-weight:600;font-size:14px;cursor:pointer}
+.chipbtn.sel{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+.danger-text{color:var(--neg);margin-top:6px;box-shadow:none;background:var(--neg-bg)}
+.facts.flat{box-shadow:none;background:var(--surface-2);margin-top:4px}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+<div id="bar"></div>
+<dialog class="sheet" id="sheet"></dialog>
+<div class="toast" id="toast"></div>
+<script>
+/* =================================================================== */
+/* Konfiguration                                                        */
+/* =================================================================== */
+const CONFIG = {
+  // Web-App-URL aus Apps Script (endet auf /exec)
+  API_URL: '',
+};
+const FIELDS = 10;
+
+/* =================================================================== */
+/* Speicher                                                             */
+/* =================================================================== */
+function st(kind) { try { return window[kind]; } catch (_) { return null; } }
+const ls = {
+  get: k => { try { return st('localStorage').getItem(k); } catch (_) { return null; } },
+  set: (k, v) => { try { st('localStorage').setItem(k, v); } catch (_) {} },
+  del: k => { try { st('localStorage').removeItem(k); } catch (_) {} },
+};
+const ss = {
+  get: k => { try { return st('sessionStorage').getItem(k); } catch (_) { return null; } },
+  set: (k, v) => { try { st('sessionStorage').setItem(k, v); } catch (_) {} },
+  del: k => { try { st('sessionStorage').removeItem(k); } catch (_) {} },
+};
+
+/* =================================================================== */
+/* State                                                                */
+/* =================================================================== */
+const state = {
+  token: null,        // Lese-Code: Voll-Token oder persönlicher Code
+  scope: null,        // 'all' | 'user'
+  user: null,         // Name bei persönlichem Code
+  cards: null,
+  trainers: [],
+  loading: false,
+  error: null,
+  gateError: '',
+  loadedAt: null,
+  clockOffset: 0,
+  admin: null,        // { secret, lockId, label, expires }
+  tokens: null,       // Zugänge (nur Admin)
+};
+
+// Reihenfolge: ?token=… in der URL, dann localStorage, sonst Eingabe-Bildschirm
+function initToken() {
+  const url = new URL(location.href);
+  const q = (url.searchParams.get('token') || '').trim();
+  if (q) {
+    ls.set('kk_token', q);
+    url.searchParams.delete('token');
+    history.replaceState(null, '', url.pathname + url.search + url.hash);
+    return q;
+  }
+  return ls.get('kk_token');
+}
+
+function restoreAdmin() {
+  try { const a = JSON.parse(ss.get('kk_admin') || 'null'); if (a && a.secret && a.lockId) return a; } catch (_) {}
+  return null;
+}
+function saveAdmin() {
+  if (state.admin) ss.set('kk_admin', JSON.stringify({ secret: state.admin.secret, lockId: state.admin.lockId, label: state.admin.label }));
+  else ss.del('kk_admin');
+}
+function newLockId() {
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return Array.from({ length: 32 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+}
+
+/* =================================================================== */
+/* API                                                                  */
+/* =================================================================== */
+const ERRORS = {
+  unauthorized: 'Code oder Passwort falsch.',
+  rate_limited: 'Zu viele falsche Codes. Bitte in 10 Minuten nochmal versuchen.',
+  expired: 'Die Uhrzeit des Geräts weicht zu stark ab.',
+  replay: 'Anfrage wurde doppelt gesendet. Bitte nochmal versuchen.',
+  busy: 'Gerade schreibt jemand anderes. Bitte gleich nochmal.',
+  not_configured: 'Das Backend ist noch nicht eingerichtet.',
+  lock_lost: 'Die Admin-Sperre ist abgelaufen oder wurde übernommen.',
+  network: 'Keine Verbindung zum Server.',
+};
+class ApiError extends Error {
+  constructor(code, message, data) { super(message || ERRORS[code] || code); this.code = code; this.data = data || {}; }
+}
+
+async function apiGet(token) {
+  if (!CONFIG.API_URL) throw new ApiError('not_configured', 'In index.html fehlt noch die API_URL.');
+  let res;
+  try { res = await fetch(CONFIG.API_URL + '?token=' + encodeURIComponent(token), { redirect: 'follow' }); }
+  catch (_) { throw new ApiError('network'); }
+  const data = await res.json().catch(() => { throw new ApiError('server_error', 'Ungültige Antwort vom Server.'); });
+  if (!data.ok) throw new ApiError(data.error, data.message, data);
+  return data;
+}
+
+async function apiPost(cmd, secret) {
+  if (!CONFIG.API_URL) throw new ApiError('not_configured', 'In index.html fehlt noch die API_URL.');
+  const payload = JSON.stringify(cmd);
+  const ts = Date.now() + state.clockOffset;
+  const sig = await hmacHex(secret || '', ts + '.' + payload);
+  let res;
+  try {
+    // text/plain vermeidet den CORS-Preflight, den Apps Script nicht beantwortet
+    res = await fetch(CONFIG.API_URL, {
+      method: 'POST', redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ ts, payload, sig }),
+    });
+  } catch (_) { throw new ApiError('network'); }
+  const data = await res.json().catch(() => { throw new ApiError('server_error', 'Ungültige Antwort vom Server.'); });
+  if (!data.ok) throw new ApiError(data.error, data.message, data);
+  return data;
+}
+
+async function hmacHex(secret, msg) {
+  if (!window.crypto || !crypto.subtle) throw new ApiError('insecure', 'Der Schreibmodus geht nur über HTTPS.');
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey('raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(msg));
+  return [...new Uint8Array(sig)].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Admin-Aufruf: signiert, hängt die Sitzung an und hält die Sperre aktuell
+async function adminPost(cmd) {
+  if (!state.admin) throw new ApiError('lock_lost');
+  try {
+    const d = await apiPost({ ...cmd, lockId: state.admin.lockId }, state.admin.secret);
+    if (d.lock) syncLock(d.lock);
+    return d;
+  } catch (e) {
+    if (e.code === 'lock_lost' || e.code === 'unauthorized') { endAdmin(e.message); }
+    throw e;
+  }
+}
+
+function syncLock(lock) {
+  if (!state.admin) return;
+  if (lock.mine) { state.admin.expires = lock.expires; updateAdminBar(); }
+  else if (lock.held !== undefined) endAdmin(lock.held ? `${lock.label} hat jetzt die Admin-Sperre.` : 'Die Admin-Sperre ist abgelaufen.');
+}
+
+function applyData(d) {
+  if (d.cards) state.cards = d.cards;
+  if (d.scope) { state.scope = d.scope; state.user = d.user || null; }
+  if (d.serverTime) state.clockOffset = d.serverTime - Date.now();
+  state.loadedAt = new Date();
+  if (!state.admin && state.token) {
+    ls.set('kk_cache', JSON.stringify({ token: state.token, cards: state.cards, scope: state.scope, user: state.user }));
+  }
+}
+
+async function load() {
+  if (!state.admin && !state.token) { state.cards = null; render(); return; }
+  state.loading = true; state.error = null; renderTop();
+  try {
+    if (state.admin) {
+      const [d, t] = await Promise.all([adminPost({ action: 'read' }), adminPost({ action: 'trainers' })]);
+      // Sperre unterwegs verloren: endAdmin() lädt schon mit dem eigenen Code neu
+      if (!state.admin) return;
+      applyData(d);
+      state.trainers = t.trainers || [];
+    } else {
+      applyData(await apiGet(state.token));
+    }
+  } catch (e) {
+    if (!state.admin && (e.code === 'unauthorized' || e.code === 'rate_limited')) {
+      forgetToken(e.code === 'unauthorized' ? 'Dieser Code ist ungültig.' : e.message);
+    } else {
+      state.error = e;
+      if (state.cards) toast(e.message, true);
+    }
+  }
+  state.loading = false;
+  render();
+}
+
+function forgetToken(msg) {
+  state.token = null; state.cards = null; state.scope = null; state.user = null;
+  state.gateError = msg || '';
+  ls.del('kk_token'); ls.del('kk_cache');
+}
+
+async function write(cmd, okMsg) {
+  const d = await adminPost(cmd);
+  applyData(d);
+  render();
+  if (okMsg) toast(okMsg);
+  return d;
+}
+
+/* =================================================================== */
+/* Admin-Sitzung                                                        */
+/* =================================================================== */
+function isAdmin() { return !!state.admin; }
+
+function endAdmin(msg) {
+  if (!state.admin) return;
+  state.admin = null; state.tokens = null;
+  saveAdmin();
+  if (msg) toast(msg, true);
+  // Daten wieder mit dem eigenen Lese-Code laden (persönlich oder voll)
+  state.cards = null;
+  if (location.hash.startsWith('#/admin')) location.hash = '#/';
+  load();
+}
+
+async function leaveAdmin() {
+  if (!state.admin) return;
+  try { await apiPost({ action: 'releaseLock', lockId: state.admin.lockId }, state.admin.secret); } catch (_) {}
+  state.admin = null; state.tokens = null; saveAdmin();
+  toast('Schreibmodus beendet, Sperre freigegeben');
+  state.cards = null;
+  if (location.hash.startsWith('#/admin')) location.hash = '#/';
+  load();
+}
+
+function lockTime(ms) {
+  return new Date(ms).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+}
+
+function updateAdminBar() {
+  const el = document.querySelector('.adminbar span');
+  if (el && state.admin) el.innerHTML = `Schreibmodus · Sperre bis <b>${lockTime(state.admin.expires)}</b>`;
+}
+
+setInterval(() => {
+  if (state.admin && state.admin.expires && Date.now() + state.clockOffset > state.admin.expires) {
+    endAdmin('Die Admin-Sperre ist abgelaufen.');
+  }
+}, 15000);
+
+/* =================================================================== */
+/* Ableitungen                                                          */
+/* =================================================================== */
+function owners() {
+  const map = new Map();
+  for (const c of state.cards || []) {
+    if (!map.has(c.name)) map.set(c.name, []);
+    map.get(c.name).push(c);
+  }
+  return [...map.entries()].map(([name, cards]) => ({ name, cards, ...stats(cards) }))
+    .sort((a, b) => a.name.localeCompare(b.name, 'de'));
+}
+// Saldo = freie Felder auf bezahlten Karten minus Stempel auf Kreditkarten
+function stats(cards) {
+  let credit = 0, debt = 0, active = 0;
+  for (const c of cards) {
+    if (c.paid) credit += c.rest; else debt += c.used;
+    if (!c.full) active++;
+  }
+  return { credit, debt, balance: credit - debt, active, count: cards.length };
+}
+function status(c) {
+  if (c.full) return ['voll', 'Voll'];
+  if (!c.paid) return ['kredit', 'Kredit'];
+  if (c.used === 0) return ['neu', 'Neu'];
+  return ['aktiv', 'Aktiv'];
+}
+function cardLabel(c) { return c.paid ? 'Karte ' + c.nr : 'Kreditkarte'; }
+function sortCards(a, b) {
+  if (a.full !== b.full) return a.full ? 1 : -1;
+  return (b.kaufdatum || '9999').localeCompare(a.kaufdatum || '9999') || b.row - a.row;
+}
+// Nur eigene Karten sichtbar (persönlicher Code, kein Admin)
+function personal() { return !isAdmin() && state.scope === 'user'; }
+
+/* =================================================================== */
+/* Formatierung                                                         */
+/* =================================================================== */
+const esc = s => String(s ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+const isISO = s => /^\d{4}-\d{2}-\d{2}$/.test(s || '');
+const fmtShort = s => isISO(s) ? s.slice(8, 10) + '.' + s.slice(5, 7) + '.' : (s || '');
+const fmtFull = s => isISO(s) ? s.slice(8, 10) + '.' + s.slice(5, 7) + '.' + s.slice(0, 4) : (s || '');
+const signed = n => n > 0 ? '+' + n : n < 0 ? '−' + Math.abs(n) : '0';
+const tone = n => n > 0 ? 'pos' : n < 0 ? 'neg' : 'zero';
+const today = () => { const t = new Date(); return t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0'); };
+const initials = n => n.split(/[\s/-]+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+function hue(s) { let h = 0; for (const ch of s) h = (h * 31 + ch.charCodeAt(0)) % 360; return h; }
+const avatar = n => `<div class="avatar" style="background:linear-gradient(135deg,hsl(${hue(n)} 70% 58%),hsl(${(hue(n) + 40) % 360} 70% 48%))">${esc(initials(n))}</div>`;
+const shareUrl = token => location.origin + location.pathname + '?token=' + encodeURIComponent(token);
+
+const I = {
+  back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>',
+  chev: '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>',
+  lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
+  unlock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 7.6-1.7"/></svg>',
+  refresh: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>',
+  search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>',
+  plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  stamp: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6l-1 7h3a2 2 0 0 1 2 2v2H5v-2a2 2 0 0 1 2-2h3L9 3z"/><path d="M5 18h14"/></svg>',
+  undo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg>',
+  euro: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 6.5A7 7 0 1 0 17 17.5"/><path d="M4 10h9M4 14h9"/></svg>',
+  gear: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
+  share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/></svg>',
+  trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>',
+  download: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>',
+  copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>',
+};
+
+/* =================================================================== */
+/* Routing & Rendering                                                  */
+/* =================================================================== */
+function route() {
+  const h = location.hash.slice(1);
+  let m;
+  if (h === '/admin') return { view: 'admin' };
+  if ((m = h.match(/^\/o\/(.+)$/))) return { view: 'owner', name: decodeURIComponent(m[1]) };
+  if ((m = h.match(/^\/c\/(\d+)$/))) return { view: 'card', row: Number(m[1]) };
+  return { view: 'owners' };
+}
+let query = '';
+
+function renderTop(title, kicker, backHref) {
+  const last = renderTop.last || {};
+  title = title ?? last.title; kicker = kicker ?? last.kicker; backHref = backHref === undefined ? last.backHref : backHref;
+  renderTop.last = { title, kicker, backHref };
+  const el = document.querySelector('.top');
+  if (!el) return;
+  el.innerHTML = `
+    ${backHref ? `<a class="iconbtn" href="${backHref}" aria-label="Zurück">${I.back}</a>` : ''}
+    <div class="titles"><h1>${esc(title)}</h1>${kicker ? `<div class="kicker">${kicker}</div>` : ''}</div>
+    <button class="iconbtn ${state.loading ? 'spin' : ''}" data-action="refresh" aria-label="Neu laden">${I.refresh}</button>
+    ${isAdmin() ? `<a class="iconbtn" href="#/admin" aria-label="Verwaltung">${I.gear}</a>` : ''}
+    <button class="iconbtn ${isAdmin() ? 'on' : ''}" data-action="lock" aria-label="${isAdmin() ? 'Schreibmodus beenden' : 'Schreibmodus'}">${isAdmin() ? I.unlock : I.lock}</button>`;
+}
+
+function render() {
+  const app = document.getElementById('app');
+  document.getElementById('bar').innerHTML = '';
+  if (!state.admin && !state.token) return renderGate(app);
+
+  const r = route();
+  app.innerHTML = '<header class="top"></header><main id="main"></main>';
+  const main = document.getElementById('main');
+
+  if (!state.cards) {
+    renderTop('Kürkarten', '', null);
+    main.innerHTML = state.error
+      ? `<div class="empty"><p>${esc(state.error.message)}</p><button class="btn ghost" data-action="refresh">Nochmal versuchen</button></div>`
+      : '<div class="skel"></div>'.repeat(6);
+    return;
+  }
+  if (r.view === 'admin') {
+    if (isAdmin()) return renderAdmin(main);
+    location.replace('#/'); return;
+  }
+  if (r.view === 'card') return renderCard(main, r.row);
+  if (personal()) return renderOwner(main, state.user);
+  if (r.view === 'owner') return renderOwner(main, r.name);
+  return renderOwners(main);
+}
+
+function banners() {
+  let h = '';
+  if (isAdmin()) h += `<div class="adminbar"><span>Schreibmodus · Sperre bis <b>${lockTime(state.admin.expires)}</b></span><button data-action="renew">Verlängern</button></div>`;
+  return h;
+}
+function footer() {
+  const t = state.loadedAt ? `Stand ${state.loadedAt.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} Uhr` : '';
+  const sw = !isAdmin() ? ` · <button class="linkbtn" style="padding:0;font-size:inherit" data-action="switch-code">Code wechseln</button>` : '';
+  return `<div class="foot">${t}${sw}</div>`;
+}
+
+function renderGate(app) {
+  app.innerHTML = `
+    <div class="gate">
+      <div class="logo">${I.stamp}</div>
+      <h1>Kürkarten</h1>
+      <p>Gib deinen Zugangscode ein. Du findest ihn in dem Link, den du bekommen hast.</p>
+      ${CONFIG.API_URL ? '' : '<div class="banner">In index.html ist noch keine API_URL eingetragen.</div>'}
+      <form id="gateform" novalidate>
+        <input class="codeinput" name="code" placeholder="ABC123" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="go" value="">
+        <div class="formerr">${esc(state.gateError)}</div>
+        <button class="btn primary block" type="submit">Öffnen</button>
+      </form>
+      <button class="linkbtn" data-action="lock">Als Admin anmelden</button>
+    </div>`;
+  const f = document.getElementById('gateform');
+  f.onsubmit = async ev => {
+    ev.preventDefault();
+    const code = String(new FormData(f).get('code') || '').trim();
+    if (!code) { f.querySelector('.formerr').textContent = 'Bitte den Code eingeben.'; return; }
+    const btn = f.querySelector('button'); btn.disabled = true; btn.classList.add('busy');
+    try {
+      const d = await apiGet(code);
+      state.token = code; ls.set('kk_token', code); state.gateError = '';
+      applyData(d); location.hash = '#/'; render();
+    } catch (e) {
+      f.querySelector('.formerr').textContent = e.code === 'unauthorized' ? 'Dieser Code ist ungültig.' : e.message;
+    } finally { btn.disabled = false; btn.classList.remove('busy'); }
+  };
+}
+
+function renderOwners(main) {
+  const all = owners();
+  const active = (state.cards || []).filter(c => !c.full).length;
+  renderTop('Kürkarten', `${all.length} Personen · ${active} aktive Karten`, null);
+  main.innerHTML = `
+    ${banners()}
+    <label class="search">${I.search}<input id="q" type="search" placeholder="Name suchen" value="${esc(query)}" autocomplete="off"></label>
+    <div id="olist"></div>${footer()}`;
+  const draw = () => {
+    const q = query.trim().toLowerCase();
+    const list = all.filter(o => o.name.toLowerCase().includes(q));
+    document.getElementById('olist').innerHTML = list.length ? `<div class="list">${list.map(o => `
+      <a class="row" href="#/o/${encodeURIComponent(o.name)}">
+        ${avatar(o.name)}
+        <div class="main"><div class="name">${esc(o.name)}</div>
+          <div class="sub">${o.count} ${o.count === 1 ? 'Karte' : 'Karten'}${o.active ? ` · ${o.active} aktiv` : ''}${o.debt ? ` · ${o.debt} auf Kredit` : ''}</div></div>
+        <span class="pill ${tone(o.balance)}">${signed(o.balance)}</span>${I.chev}
+      </a>`).join('')}</div>` : '<div class="empty">Niemand gefunden.</div>';
+  };
+  draw();
+  document.getElementById('q').addEventListener('input', e => { query = e.target.value; draw(); });
+  if (isAdmin()) bar(`<button class="btn primary" data-action="new-card">${I.plus} Neue Karte</button>`);
+}
+
+function renderOwner(main, name) {
+  const cards = (state.cards || []).filter(c => c.name === name).sort(sortCards);
+  const back = personal() ? null : '#/';
+  if (!cards.length) { renderTop(name || 'Kürkarten', '', back); main.innerHTML = `${banners()}<div class="empty">Keine Karten gefunden.</div>${footer()}`; return; }
+  const s = stats(cards);
+  renderTop(name, `${s.count} ${s.count === 1 ? 'Karte' : 'Karten'}`, back);
+  const open = cards.filter(c => !c.full), done = cards.filter(c => c.full);
+  main.innerHTML = `
+    ${banners()}
+    <section class="hero">
+      <div class="label">Saldo</div>
+      <div class="big ${tone(s.balance)}">${signed(s.balance)} <small>${Math.abs(s.balance) === 1 ? 'Training' : 'Trainings'}</small></div>
+      <div class="split">
+        <div><b>${s.credit}</b><span>Guthaben</span></div>
+        <div><b>${s.debt}</b><span>auf Kredit</span></div>
+        <div><b>${s.active}</b><span>aktive Karten</span></div>
+      </div>
+    </section>
+    ${open.length ? `<div class="section-title">Aktuelle Karten</div><div class="tiles">${open.map(tile).join('')}</div>` : ''}
+    ${done.length ? `<details class="more" ${open.length ? '' : 'open'}><summary>Volle Karten (${done.length}) ▾</summary><div class="tiles">${done.map(tile).join('')}</div></details>` : ''}
+    ${footer()}`;
+  if (isAdmin()) bar(`<button class="btn primary" data-action="new-card" data-name="${esc(name)}">${I.plus} Neue Karte für ${esc(name)}</button>`);
+}
+
+function tile(c) {
+  const [cls, label] = status(c);
+  return `<a class="tile ${c.full ? 'full' : ''} ${c.paid ? '' : 'credit'}" href="#/c/${c.row}">
+    <div class="tile-head">
+      <div><div class="tile-title">${esc(cardLabel(c))}</div><div class="sub">${c.kaufdatum ? 'gekauft am ' + fmtFull(c.kaufdatum) : 'noch nicht bezahlt'}</div></div>
+      <span class="chip ${cls}">${label}</span>
+    </div>
+    <div class="dots">${c.stamps.map(s => `<i class="${s ? 'on' : ''}"></i>`).join('')}</div>
+    <div class="meta"><span>${c.used} von ${FIELDS} gestempelt</span><span>${c.rest} frei</span></div>
+  </a>`;
+}
+
+function renderCard(main, row) {
+  const c = (state.cards || []).find(x => x.row === row);
+  if (!c) { renderTop('Karte', '', '#/'); main.innerHTML = `${banners()}<div class="empty">Karte nicht gefunden.</div>`; return; }
+  const [cls, label] = status(c);
+  const nextIdx = c.stamps.findIndex(s => !s);
+  renderTop(cardLabel(c), esc(c.name), personal() ? '#/' : '#/o/' + encodeURIComponent(c.name));
+  main.innerHTML = `
+    ${banners()}
+    <section class="punch ${c.paid ? '' : 'credit'}">
+      <div class="punch-top">
+        <div><div class="punch-kicker">Kürkarte · 10er-Karte</div><div class="punch-name">${esc(c.name)}</div></div>
+        <div class="punch-nr">${c.paid ? '#' + esc(c.nr) : 'Kredit'}</div>
+      </div>
+      <div class="grid10">${c.stamps.map((s, i) => s
+        ? `<button class="slot on" data-action="stamp-detail" data-row="${c.row}" data-field="${i + 1}" aria-label="Stempel ${i + 1}"><span>${s.date === '?' ? '?' : fmtShort(s.date)}</span></button>`
+        : `<div class="slot ${i === nextIdx ? 'next' : ''}">${i + 1}</div>`).join('')}</div>
+      <div class="punch-foot"><span>${c.used} / ${FIELDS} gestempelt</span><span>${c.rest} frei</span></div>
+    </section>
+    <div class="list facts">
+      <div class="row"><span class="k">Status</span><span class="v"><span class="chip ${cls}">${label}</span></span></div>
+      <div class="row"><span class="k">Kartennummer</span><span class="v">${c.paid ? esc(c.nr) : '–'}</span></div>
+      <div class="row"><span class="k">Kaufdatum</span><span class="v">${c.kaufdatum ? fmtFull(c.kaufdatum) : 'nicht bezahlt'}</span></div>
+      <div class="row"><span class="k">Trainer</span><span class="v">${esc(c.trainer) || '–'}</span></div>
+      ${c.vermerk ? `<div class="row"><span class="k">Vermerk</span><span class="v">${esc(c.vermerk)}</span></div>` : ''}
+    </div>
+    ${c.used ? `<div class="section-title">Stempel</div><div class="list stamps">${c.stamps.map((s, i) => s ? `
+      <button class="row" data-action="stamp-detail" data-row="${c.row}" data-field="${i + 1}">
+        <span class="fieldno">${i + 1}</span>
+        <div class="main">
+          <div class="name">${s.date === '?' ? 'Datum nicht lesbar' : fmtFull(s.date)}</div>
+          <div class="sub">${esc(s.trainer || 'kein Trainer eingetragen')}${s.note ? ' · ' + esc(s.note) : ''}</div>
+        </div>${isAdmin() ? I.chev : ''}
+      </button>` : '').join('')}</div>` : ''}
+    ${footer()}`;
+
+  if (!isAdmin()) return;
+  const btns = [];
+  if (!c.paid) btns.push(`<button class="btn ghost" data-action="pay" data-row="${c.row}">${I.euro} Bezahlt</button>`);
+  btns.push(c.full
+    ? `<button class="btn primary" disabled>Karte ist voll</button>`
+    : `<button class="btn primary" data-action="stamp" data-row="${c.row}">${I.stamp} Stempeln</button>`);
+  bar(btns.join(''));
+}
+
+function renderAdmin(main) {
+  renderTop('Verwaltung', 'Schreibmodus', '#/');
+  main.innerHTML = `
+    ${banners()}
+    <section class="card">
+      <h3>Admin-Sperre</h3>
+      <div class="sub">${esc(state.admin.label)} hat die Sperre bis ${lockTime(state.admin.expires)} Uhr. Solange kann niemand sonst schreiben. Jede Änderung verlängert sie um 1 Stunde.</div>
+      <div class="btnrow">
+        <button class="btn ghost" data-action="renew">Verlängern</button>
+        <button class="btn ghost" data-action="lock">Freigeben</button>
+      </div>
+    </section>
+    <section class="card">
+      <h3>Daten sichern</h3>
+      <div class="sub">Kopie der Kartentabelle. Die CSV enthält keine Zugangscodes, die Google-Kopie schon (sie liegt im Drive des Sheet-Besitzers).</div>
+      <div class="btnrow">
+        <button class="btn ghost" data-action="export-csv">${I.download} CSV</button>
+        <button class="btn ghost" data-action="backup">${I.copy} Google Sheet</button>
+      </div>
+      <div class="result" id="backupres"></div>
+    </section>
+    <section class="card">
+      <h3>Zugänge</h3>
+      <div class="sub">Persönliche Codes. Wer einen Code hat, sieht nur die eigenen Karten.</div>
+      <div id="tokens">${state.tokens ? tokenList() : '<div class="skel"></div>'}</div>
+    </section>`;
+  bar(`<button class="btn primary" data-action="new-token">${I.plus} Neuer Zugang</button>`);
+  if (!state.tokens) {
+    adminPost({ action: 'listTokens' })
+      .then(d => { state.tokens = d.tokens; const el = document.getElementById('tokens'); if (el) el.innerHTML = tokenList(); })
+      .catch(e => toast(e.message, true));
+  }
+}
+
+function tokenList() {
+  const t = [...state.tokens].sort((a, b) => a.name.localeCompare(b.name, 'de'));
+  if (!t.length) return '<div class="empty" style="padding:14px">Noch keine Zugänge.</div>';
+  return `<div class="tokens">${t.map(x => `
+    <div class="row">
+      ${avatar(x.name)}
+      <div class="main"><div class="name">${esc(x.name)}</div><div class="sub mono">${esc(x.token)}</div></div>
+      <button class="iconbtn" data-action="share-token" data-token="${esc(x.token)}" data-name="${esc(x.name)}" aria-label="Link teilen">${I.share}</button>
+      <button class="iconbtn" data-action="del-token" data-token="${esc(x.token)}" data-name="${esc(x.name)}" aria-label="Löschen">${I.trash}</button>
+    </div>`).join('')}</div>`;
+}
+
+function bar(html) {
+  document.getElementById('bar').innerHTML = `<div class="actionbar"><div class="inner">${html}</div></div>`;
+}
+
+/* =================================================================== */
+/* Bottom Sheets                                                        */
+/* =================================================================== */
+function openSheet(inner, okLabel, onSubmit, opts = {}) {
+  const d = document.getElementById('sheet');
+  d.innerHTML = `<form class="panel" novalidate><div class="grab"></div>${inner}
+    <div class="formerr" id="ferr"></div>
+    <div class="sheet-actions">
+      <button type="button" class="btn ghost" data-close>${opts.cancel || 'Abbrechen'}</button>
+      ${okLabel ? `<button type="submit" class="btn ${opts.danger ? 'danger' : 'primary'}">${okLabel}</button>` : ''}
+    </div></form>`;
+  const f = d.querySelector('form');
+  f.querySelector('[data-close]').onclick = () => d.close();
+  f.onsubmit = async ev => {
+    ev.preventDefault();
+    const btn = f.querySelector('[type=submit]');
+    if (!btn) return;
+    const err = f.querySelector('#ferr');
+    err.textContent = '';
+    btn.disabled = true; btn.classList.add('busy');
+    try { const keep = await onSubmit(new FormData(f), f); if (keep !== 'keep') d.close(); }
+    catch (e) {
+      err.textContent = e.message || String(e);
+      if (e.code === 'conflict') load();
+      if (e.code === 'lock_lost') d.close();
+    } finally { btn.disabled = false; btn.classList.remove('busy'); }
+  };
+  if (opts.wire) opts.wire(f);
+  d.showModal();
+  const first = f.querySelector('input:not([type=hidden]):not([readonly]):not([type=radio]):not([type=checkbox])');
+  if (first && opts.focus !== false) setTimeout(() => first.focus(), 60);
+}
+document.getElementById('sheet').addEventListener('click', e => { if (e.target.id === 'sheet') e.target.close(); });
+
+function unlockSheet() {
+  let force = false;
+  const pw = ls.get('kk_pw') || '';
+  openSheet(`
+    <h2>Schreibmodus</h2>
+    <p class="hint">Im Schreibmodus sperrst du das Sheet für andere Admins (1 Stunde, jede Änderung verlängert). Das Passwort verlässt das Gerät nicht.</p>
+    <label class="field"><span>Dein Name (sehen andere Admins)</span><input type="text" name="label" value="${esc(ls.get('kk_label') || '')}" autocomplete="nickname" maxlength="40"></label>
+    <label class="field"><span>Passwort</span><input type="password" name="pw" value="${esc(pw)}" autocomplete="current-password"></label>
+    <label class="check"><input type="checkbox" name="remember" ${pw ? 'checked' : ''}> Passwort auf diesem Gerät merken</label>`,
+    'Entsperren', async (fd, f) => {
+      const secret = String(fd.get('pw') || '');
+      const label = String(fd.get('label') || '').trim();
+      if (!label) throw new Error('Bitte deinen Namen eingeben.');
+      if (!secret) throw new Error('Bitte das Passwort eingeben.');
+      const lockId = newLockId();
+      let d;
+      try {
+        d = await apiPost({ action: 'acquireLock', lockId, label, force }, secret);
+      } catch (e) {
+        if (e.code === 'locked' && e.data.lock) {
+          force = true;
+          f.querySelector('[type=submit]').textContent = 'Sperre übernehmen';
+          throw new Error(`${e.data.lock.label} hat die Sperre bis ${lockTime(e.data.lock.expires)} Uhr. Wenn du übernimmst, verliert ${e.data.lock.label} den Schreibmodus.`);
+        }
+        throw e;
+      }
+      state.admin = { secret, lockId, label, expires: d.lock.expires };
+      saveAdmin();
+      ls.set('kk_label', label);
+      if (fd.get('remember')) ls.set('kk_pw', secret); else ls.del('kk_pw');
+      applyData(d);
+      render();
+      toast('Schreibmodus aktiv, Sheet gesperrt');
+      adminPost({ action: 'trainers' }).then(t => { state.trainers = t.trainers || []; }).catch(() => {});
+    }, { focus: !ls.get('kk_label') });
+}
+
+// Trainer: freies Textfeld mit Vorschlägen aus der API und Schnellauswahl
+function trainerField(value) {
+  const list = state.trainers || [];
+  return `<label class="field"><span>Trainer</span>
+      <input type="text" name="trainer" list="trainerlist" value="${esc(value || '')}" placeholder="Name eingeben oder auswählen" autocomplete="off" maxlength="40">
+    </label>
+    <datalist id="trainerlist">${list.map(t => `<option value="${esc(t)}">`).join('')}</datalist>
+    ${list.length ? `<div class="chips quick">${list.map(t => `<button type="button" class="chipbtn" data-fill="${esc(t)}">${esc(t)}</button>`).join('')}</div>` : ''}`;
+}
+function wireTrainerChips(form) {
+  form.querySelectorAll('[data-fill]').forEach(b => b.onclick = () => {
+    const inp = form.querySelector('input[name=trainer]');
+    inp.value = b.dataset.fill;
+    form.querySelectorAll('[data-fill]').forEach(x => x.classList.toggle('sel', x === b));
+  });
+}
+function rememberTrainer(t) {
+  t = (t || '').trim();
+  if (t && !state.trainers.some(x => x.toLowerCase() === t.toLowerCase())) {
+    state.trainers = [...state.trainers, t].sort((a, b) => a.localeCompare(b, 'de'));
+  }
+}
+function lastTrainer(c) {
+  const fromStamps = c.stamps.filter(s => s && s.trainer).map(s => s.trainer).pop();
+  return fromStamps || (c.trainer || '').split(',').map(s => s.trim()).filter(Boolean).pop() || '';
+}
+
+function stampSheet(c) {
+  openSheet(`
+    <h2>Stempeln</h2>
+    <p class="hint">${esc(c.name)} · ${esc(cardLabel(c))} · Feld ${c.used + 1} von ${FIELDS}</p>
+    <label class="field"><span>Datum</span><input type="date" name="date" value="${today()}" required></label>
+    ${trainerField(lastTrainer(c))}
+    <label class="field"><span>Notiz (optional)</span><input type="text" name="note" maxlength="200" placeholder="z. B. Sprungtraining"></label>`,
+    `${I.stamp} Stempeln`, async fd => {
+      const date = String(fd.get('date') || '');
+      if (!isISO(date)) throw new Error('Bitte ein Datum wählen.');
+      const trainer = String(fd.get('trainer') || '').trim();
+      await write({ action: 'stamp', row: c.row, expectName: c.name, date, trainer, note: String(fd.get('note') || '').trim() });
+      rememberTrainer(trainer);
+      stampFx();
+      toast(`Gestempelt: ${fmtShort(date)}`);
+    }, { focus: false, wire: wireTrainerChips });
+}
+
+// Details eines Stempels; im Schreibmodus bearbeiten und löschen
+function stampDetailSheet(c, field) {
+  const s = c.stamps[field - 1];
+  if (!s) return;
+  const title = `Stempel ${field} von ${FIELDS}`;
+  const hint = `${esc(c.name)} · ${esc(cardLabel(c))}`;
+  if (!isAdmin()) {
+    openSheet(`
+      <h2>${title}</h2>
+      <p class="hint">${hint}</p>
+      <div class="list facts flat">
+        <div class="row"><span class="k">Datum</span><span class="v">${s.date === '?' ? 'nicht lesbar' : fmtFull(s.date)}</span></div>
+        <div class="row"><span class="k">Trainer</span><span class="v">${esc(s.trainer) || '–'}</span></div>
+        <div class="row"><span class="k">Notiz</span><span class="v">${esc(s.note) || '–'}</span></div>
+      </div>`, null, null, { cancel: 'Schließen', focus: false });
+    return;
+  }
+  openSheet(`
+    <h2>${title}</h2>
+    <p class="hint">${hint}${s.date === '?' ? ' · Datum war nicht lesbar' : ''}</p>
+    <label class="field"><span>Datum</span><input type="date" name="date" value="${isISO(s.date) ? s.date : ''}"></label>
+    ${trainerField(s.trainer)}
+    <label class="field"><span>Notiz</span><input type="text" name="note" value="${esc(s.note)}" maxlength="200"></label>
+    <button type="button" class="btn ghost block danger-text" data-del>${I.trash} Diesen Stempel löschen</button>`,
+    'Speichern', async fd => {
+      let date = String(fd.get('date') || '');
+      if (!date && s.date === '?') date = '?';
+      if (date !== '?' && !isISO(date)) throw new Error('Bitte ein Datum wählen.');
+      const trainer = String(fd.get('trainer') || '').trim();
+      await write({ action: 'editStamp', row: c.row, expectName: c.name, field, expect: s.date, date, trainer, note: String(fd.get('note') || '').trim() }, 'Stempel gespeichert');
+      rememberTrainer(trainer);
+    }, {
+      focus: false,
+      wire: f => {
+        wireTrainerChips(f);
+        f.querySelector('[data-del]').onclick = () => deleteStampSheet(c, field);
+      },
+    });
+}
+
+function deleteStampSheet(c, field) {
+  const s = c.stamps[field - 1];
+  const after = c.stamps.slice(field).filter(Boolean).length;
+  openSheet(`
+    <h2>Stempel löschen?</h2>
+    <p class="hint">Feld ${field} vom ${esc(s.date === '?' ? '(nicht lesbar)' : fmtFull(s.date))}${s.trainer ? ' bei ' + esc(s.trainer) : ''} wird gelöscht.${after ? ` ${after === 1 ? 'Der Stempel danach rückt' : 'Die ' + after + ' Stempel danach rücken'} eins nach vorne.` : ''}</p>`,
+    'Löschen', async () => {
+      await write({ action: 'deleteStamp', row: c.row, expectName: c.name, field, expect: s.date }, 'Stempel gelöscht');
+    }, { danger: true });
+}
+
+function paySheet(c) {
+  openSheet(`
+    <h2>Als bezahlt markieren</h2>
+    <p class="hint">Die Kreditkarte von ${esc(c.name)} bekommt eine Kartennummer.</p>
+    <label class="field"><span>Kartennummer</span><input type="text" name="nr" inputmode="numeric" pattern="[0-9]*" required></label>
+    <label class="field"><span>Kaufdatum</span><input type="date" name="kauf" value="${today()}" required></label>`,
+    'Speichern', async fd => {
+      const nr = String(fd.get('nr') || '').trim(), kauf = String(fd.get('kauf') || '');
+      if (!/^\d{1,8}$/.test(nr)) throw new Error('Bitte eine Kartennummer (nur Ziffern) eingeben.');
+      if (!isISO(kauf)) throw new Error('Bitte ein Kaufdatum wählen.');
+      await write({ action: 'markPaid', row: c.row, expectName: c.name, nr, kaufdatum: kauf }, 'Als bezahlt gespeichert');
+    });
+}
+
+function newCardSheet(name) {
+  const names = [...new Set((state.cards || []).map(c => c.name))].sort((a, b) => a.localeCompare(b, 'de'));
+  openSheet(`
+    <h2>Neue Karte</h2>
+    <p class="hint">Ohne Kartennummer wird es eine Kreditkarte.</p>
+    <label class="field"><span>Name</span><input type="text" name="name" list="names" value="${esc(name || '')}" autocomplete="off" required></label>
+    <datalist id="names">${names.map(n => `<option value="${esc(n)}">`).join('')}</datalist>
+    <label class="field"><span>Kartennummer (optional)</span><input type="text" name="nr" inputmode="numeric" pattern="[0-9]*"></label>
+    <label class="field"><span>Kaufdatum</span><input type="date" name="kauf" value="${today()}"></label>`,
+    'Anlegen', async fd => {
+      const n = String(fd.get('name') || '').trim(), nr = String(fd.get('nr') || '').trim(), kauf = String(fd.get('kauf') || '');
+      if (!n) throw new Error('Bitte einen Namen eingeben.');
+      if (nr && !/^\d{1,8}$/.test(nr)) throw new Error('Die Kartennummer darf nur Ziffern enthalten.');
+      await write({ action: 'createCard', name: n, nr, kaufdatum: nr && isISO(kauf) ? kauf : '' }, nr ? 'Karte angelegt' : 'Kreditkarte angelegt');
+      location.hash = '#/o/' + encodeURIComponent(n);
+    }, { focus: !name });
+}
+
+function newTokenSheet() {
+  const have = new Set((state.tokens || []).map(t => t.name.toLowerCase()));
+  const free = [...new Set((state.cards || []).map(c => c.name))].filter(n => !have.has(n.toLowerCase())).sort((a, b) => a.localeCompare(b, 'de'));
+  if (!free.length) { toast('Alle Eisläufer haben schon einen Zugang.'); return; }
+  openSheet(`
+    <h2>Neuer Zugang</h2>
+    <p class="hint">Der Code zeigt nur die Karten dieser Person. Jede Person bekommt genau einen Code.</p>
+    <label class="field"><span>Eisläufer/in</span><select name="name">${free.map(n => `<option>${esc(n)}</option>`).join('')}</select></label>`,
+    'Code erstellen', async fd => {
+      const d = await adminPost({ action: 'createToken', name: String(fd.get('name') || '') });
+      state.tokens = d.tokens;
+      render();
+      setTimeout(() => tokenResultSheet(d.created.name, d.created.token), 50);
+    }, { focus: false });
+}
+
+function tokenResultSheet(name, token) {
+  const url = shareUrl(token);
+  openSheet(`
+    <h2>Zugang für ${esc(name)}</h2>
+    <p class="hint">Schick den Link weiter. Wer ihn öffnet, ist direkt angemeldet. Den Code kann man sich auch merken und von Hand eingeben.</p>
+    <div class="bigcode mono">${esc(token)}</div>
+    <div class="linkbox">${esc(url)}</div>`,
+    `${I.share} Link teilen`, async () => { await shareLink(name, token); return 'keep'; },
+    { cancel: 'Fertig', focus: false });
+}
+
+function deleteTokenSheet(name, token) {
+  openSheet(`
+    <h2>Zugang löschen?</h2>
+    <p class="hint">Der Code <b class="mono">${esc(token)}</b> von ${esc(name)} funktioniert danach nicht mehr. Du kannst später einen neuen erstellen.</p>`,
+    'Löschen', async () => {
+      const d = await adminPost({ action: 'deleteToken', name, token });
+      state.tokens = d.tokens; render(); toast('Zugang gelöscht');
+    }, { danger: true });
+}
+
+async function shareLink(name, token) {
+  const url = shareUrl(token);
+  const text = `Kürkarten von ${name}: ${url} (Code ${token})`;
+  if (navigator.share) {
+    try { await navigator.share({ title: 'Kürkarten', text: `Kürkarten von ${name} (Code ${token})`, url }); return; }
+    catch (e) { if (e.name === 'AbortError') return; }
+  }
+  try { await navigator.clipboard.writeText(text); toast('Link kopiert'); }
+  catch (_) { prompt('Link kopieren:', url); }
+}
+
+/* =================================================================== */
+/* Export                                                               */
+/* =================================================================== */
+async function exportCsv(btn) {
+  btn.disabled = true; btn.classList.add('busy');
+  try {
+    const d = await adminPost({ action: 'export' });
+    const q = v => '"' + String(v ?? '').replace(/"/g, '""') + '"';
+    // Semikolon + BOM, damit Excel mit deutscher Einstellung die Datei direkt richtig öffnet
+    const csv = '﻿' + d.rows.map(r => r.map(q).join(';')).join('\r\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = d.filename || 'Kuerkarten.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    toast('CSV heruntergeladen');
+  } catch (e) { toast(e.message, true); }
+  finally { btn.disabled = false; btn.classList.remove('busy'); }
+}
+
+async function backupSheet(btn) {
+  btn.disabled = true; btn.classList.add('busy');
+  try {
+    const d = await adminPost({ action: 'backup' });
+    const el = document.getElementById('backupres');
+    if (el) el.innerHTML = `Kopie erstellt: <a href="${esc(d.backup.url)}" target="_blank" rel="noopener">${esc(d.backup.title)}</a>`;
+    toast('Google-Sheet-Kopie erstellt');
+  } catch (e) { toast(e.message, true); }
+  finally { btn.disabled = false; btn.classList.remove('busy'); }
+}
+
+/* =================================================================== */
+/* Events                                                               */
+/* =================================================================== */
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-action]');
+  if (!el) return;
+  const a = el.dataset.action;
+  const card = () => (state.cards || []).find(c => c.row === Number(el.dataset.row));
+  if (a === 'refresh') { state.tokens = isAdmin() && route().view === 'admin' ? null : state.tokens; load(); }
+  else if (a === 'lock') isAdmin() ? leaveAdmin() : unlockSheet();
+  else if (a === 'renew') adminPost({ action: 'acquireLock', label: state.admin.label }).then(d => { applyData(d); toast('Sperre verlängert bis ' + lockTime(state.admin.expires)); render(); }).catch(err => toast(err.message, true));
+  else if (a === 'switch-code') { forgetToken(''); location.hash = '#/'; render(); }
+  else if (a === 'stamp' && card()) stampSheet(card());
+  else if (a === 'stamp-detail' && card()) stampDetailSheet(card(), Number(el.dataset.field));
+  else if (a === 'pay' && card()) paySheet(card());
+  else if (a === 'new-card') newCardSheet(el.dataset.name);
+  else if (a === 'new-token') newTokenSheet();
+  else if (a === 'share-token') shareLink(el.dataset.name, el.dataset.token);
+  else if (a === 'del-token') deleteTokenSheet(el.dataset.name, el.dataset.token);
+  else if (a === 'export-csv') exportCsv(el);
+  else if (a === 'backup') backupSheet(el);
+});
+window.addEventListener('hashchange', () => { render(); window.scrollTo(0, 0); });
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && state.loadedAt && Date.now() - state.loadedAt > 60000) load();
+});
+
+let toastTimer;
+function toast(msg, err) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show' + (err ? ' err' : '');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.className = 'toast' + (err ? ' err' : ''); }, 2800);
+}
+function stampFx() {
+  const fx = document.createElement('div');
+  fx.className = 'stamp-fx'; fx.innerHTML = '<div>✓</div>';
+  document.body.appendChild(fx); setTimeout(() => fx.remove(), 800);
+  if (navigator.vibrate) navigator.vibrate(30);
+}
+
+/* =================================================================== */
+/* Start                                                                */
+/* =================================================================== */
+state.token = initToken();
+state.admin = restoreAdmin();
+if (!state.admin && state.token) {
+  // Zuletzt geladenen Stand sofort zeigen, dann frisch laden
+  try {
+    const c = JSON.parse(ls.get('kk_cache') || 'null');
+    if (c && c.token === state.token) { state.cards = c.cards; state.scope = c.scope; state.user = c.user; }
+  } catch (_) {}
+}
+render();
+load();
+</script>
+</body>
+</html>
